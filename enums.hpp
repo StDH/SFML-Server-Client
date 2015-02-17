@@ -8,7 +8,7 @@ namespace enums
 	enum Packet : sf::Uint8
 	{
 		INVALID = 0u,
-		NAME_OF_CLIENT,
+		UID_OF_CLIENT,
 		MSG_TO_SERVER,
 		MSG_TO_CLIENT,
 		FTP,

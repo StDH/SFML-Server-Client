@@ -8,8 +8,6 @@
 
 void main(int argc, const char* argv[])
 {
-	printf("%s\n", sf::IpAddress::getPublicAddress(sf::seconds(1.f)).toString().c_str());
-
 	try
 	{
 		if (argc == 3)
