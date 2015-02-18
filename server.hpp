@@ -30,11 +30,15 @@ class Server
 		sf::SocketSelector	m_selector;
 		sf::TcpListener		m_listener;
 
-		std::list<std::unique_ptr<Client>> m_clients;
+		typedef std::list<std::unique_ptr<Client>> LIST_OF_CLIENTS;
+
+		LIST_OF_CLIENTS m_clients;
 
 		sf::Uint8 m_max_clients;
 
 		bool m_running;
+
+		LIST_OF_CLIENTS::iterator disconnect(LIST_OF_CLIENTS::iterator);
 
 		void handle_connections();
 		void handle_packets();

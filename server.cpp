@@ -7,6 +7,17 @@
 
 #include "enums.hpp"
 
+Server::LIST_OF_CLIENTS::iterator Server::disconnect(Server::LIST_OF_CLIENTS::iterator _iter)
+{
+	Client& ref = **_iter;
+
+	std::cout << ref.m_socket -> getRemoteAddress() << ":" << ref.m_socket -> getRemotePort() << " disconnected." << std::endl;
+			
+	m_selector.remove(*ref.m_socket);
+
+	return m_clients.erase(_iter);
+}
+
 void Server::handle_connections()
 {
 	auto client = std::move(std::make_unique<Client>());
@@ -22,7 +33,7 @@ void Server::handle_connections()
 
 			/*
 			 * Dear Me,
-			 * If you will again add something after std::move, then please jump out of window (24 level - good flight).
+			 * If you will again add something after std::move, then please jump out of window (24 level = good flight).
 			 * std::move + std::unique_ptr -> get it in your fucking head ! (sexting)
 			 * https://www.youtube.com/watch?v=GAKgOkkDxys
 			 */
@@ -37,16 +48,24 @@ void Server::handle_connections()
 
 void Server::handle_packets()
 {
-	for (auto &ptr : m_clients)
+	auto iter = m_clients.begin();
+
+	while (iter != m_clients.end())
 	{
-		if (m_selector.isReady(*ptr -> m_socket))
+		Client &ref = **iter;
+
+		if (m_selector.isReady(*ref.m_socket))
 		{
 			sf::Packet packet;
 
-			sf::TcpSocket::Status socket_state = ptr -> m_socket -> receive(packet);
-
-			switch (socket_state)
+			switch (ref.m_socket -> receive(packet))
 			{
+				if (ref.m_socket -> getRemoteAddress() == sf::IpAddress::None)
+				{
+					iter = disconnect(iter);
+					return;
+				}
+
 				case sf::TcpSocket::Done:
 				{
 					sf::Uint8 flag = enums::Packet::INVALID;
@@ -63,10 +82,7 @@ void Server::handle_packets()
 
 				case sf::TcpSocket::Disconnected:
 				{
-					std::cout << ptr -> m_socket -> getRemoteAddress() << ":" << ptr -> m_socket -> getRemotePort() << " disconnected." << std::endl;
-			
-					m_selector.remove(*ptr -> m_socket);
-					m_clients.erase(ptr);
+					iter = disconnect(iter);
 
 					break;
 				}
@@ -98,6 +114,8 @@ Server::Server()
 void Server::initialize(const sf::Uint16 _port, const sf::Uint8 _max)
 {
 	m_max_clients = _max;
+
+	m_listener.setBlocking(false);
 
 	if (m_listener.listen(_port) != sf::Socket::Done)
 		throw "Server::run() != sf::Socket::Done";
