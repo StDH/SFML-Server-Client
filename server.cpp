@@ -7,17 +7,6 @@
 
 #include "enums.hpp"
 
-Server::LIST_OF_CLIENTS::iterator Server::disconnect(Server::LIST_OF_CLIENTS::iterator _iter)
-{
-	Client& ref = **_iter;
-
-	std::cout << ref.m_socket -> getRemoteAddress() << ":" << ref.m_socket -> getRemotePort() << " disconnected." << std::endl;
-			
-	m_selector.remove(*ref.m_socket);
-
-	return m_clients.erase(_iter);
-}
-
 void Server::handle_connections()
 {
 	auto client = std::move(std::make_unique<Client>());
@@ -60,12 +49,6 @@ void Server::handle_packets()
 
 			switch (ref.m_socket -> receive(packet))
 			{
-				if (ref.m_socket -> getRemoteAddress() == sf::IpAddress::None)
-				{
-					iter = disconnect(iter);
-					return;
-				}
-
 				case sf::TcpSocket::Done:
 				{
 					sf::Uint8 flag = enums::Packet::INVALID;
@@ -82,7 +65,11 @@ void Server::handle_packets()
 
 				case sf::TcpSocket::Disconnected:
 				{
-					iter = disconnect(iter);
+					std::cout << ref.m_socket -> getRemoteAddress() << ":" << ref.m_socket -> getRemotePort() << " disconnected." << std::endl;
+			
+					m_selector.remove(*ref.m_socket);
+
+					iter = m_clients.erase(iter);
 
 					break;
 				}
