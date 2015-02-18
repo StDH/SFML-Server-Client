@@ -60,6 +60,8 @@ void Server::handle_packets()
 
 					}*/
 
+					++iter;
+
 					break;
 				}
 
@@ -101,8 +103,6 @@ Server::Server()
 void Server::initialize(const sf::Uint16 _port, const sf::Uint8 _max)
 {
 	m_max_clients = _max;
-
-	m_listener.setBlocking(false);
 
 	if (m_listener.listen(_port) != sf::Socket::Done)
 		throw "Server::run() != sf::Socket::Done";
