@@ -13,7 +13,8 @@ void main(int argc, const char* argv[])
 		if (argc == 3)
 		{
 			Server server;
-			server.run(static_cast<sf::Uint16>(std::atoi(argv[1])), static_cast<sf::Uint8>(std::atoi(argv[2])));
+			server.initialize(static_cast<sf::Uint16>(std::atoi(argv[1])), static_cast<sf::Uint8>(std::atoi(argv[2])));
+			server.deinitialize();
 		}
 		else
 		{

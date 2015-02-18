@@ -1,36 +1,51 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <list>		// std::list
-#include <memory>	// std::unique_ptr, std::make_unique, std::shared_ptr, std::make_shared
-#include <string>	// std::string
+#include <list>			// std::list
+#include <memory>		// std::unique_ptr, std::make_unique
+#include <string>		// std::string
+#include <type_traits>	// std::move
 
 #include <SFML/Config.hpp>
 #include <SFML/Network/SocketSelector.hpp>
+#include <SFML/Network/TcpListener.hpp>
 #include <SFML/Network/TcpSocket.hpp>
 
 struct Client
 {
-		std::unique_ptr<sf::TcpSocket> m_socket;
+	std::unique_ptr<sf::TcpSocket> m_socket;
 
-		sf::Uint64 m_uid; // why should i use counter, when memory is the best "random generator" =D
+	const sf::Uint64 m_uid;
 
-		Client()
-			: m_socket(std::make_unique<sf::TcpSocket>())
-			, m_uid((sf::Uint64)m_socket.get())
-		{
-		}
+	Client()
+		: m_socket(std::move(std::make_unique<sf::TcpSocket>()))
+		, m_uid((sf::Uint64)m_socket.get())
+	{
+	}
 };
 
 class Server
 {
 	private:
-		sf::SocketSelector m_selector;
+		sf::SocketSelector	m_selector;
+		sf::TcpListener		m_listener;
 
-		std::list<std::shared_ptr<Client>> m_clients;
+		std::list<std::unique_ptr<Client>> m_clients;
+
+		sf::Uint8 m_max_clients;
+
+		bool m_running;
+
+		void handle_connections();
+		void handle_packets();
+
+		void run();
 
 	public:
-		void run(const sf::Uint16, const sf::Uint8); // port(65535), max-clients(255)
+		Server();
+
+		void initialize(const sf::Uint16, const sf::Uint8); // port(65535), max-clients(255)
+		void deinitialize();
 };
 
 #endif
